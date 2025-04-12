@@ -45,7 +45,8 @@ export const CreateProposalForm = () => {
       await addProposal({
         title: values.title,
         description: values.description,
-        treasuryPhone: values.treasuryPhone
+        treasuryPhone: values.treasuryPhone,
+        updatedAt: null // Adding the missing updatedAt property
       });
       
       form.reset();
