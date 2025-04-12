@@ -68,7 +68,7 @@ app.get('*', (req, res) => {
 });
 
 // Start the server
-server.listen(PORT, HOST, () => {
+server.listen(Number(PORT), HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
   console.log(`WebSocket server available at ws://${HOST}:${PORT}/ws`);
 });
