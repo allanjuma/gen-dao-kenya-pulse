@@ -1,0 +1,17 @@
+
+name = "gendao-kenya-pulse"
+main = "worker.ts"
+compatibility_date = "2023-12-01"
+
+[durable_objects]
+bindings = [
+  { name = "WEBSOCKET_DO", class_name = "WebSocketDurableObject" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["WebSocketDurableObject"]
+
+[dev]
+port = 8787
+local = true

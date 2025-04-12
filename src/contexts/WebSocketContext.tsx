@@ -4,8 +4,10 @@ import { Proposal, User, WebSocketMessage } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 
-// Use environment variable or fallback for WebSocket URL
-const WS_URL = import.meta.env.VITE_WEBSOCKET_URL || 'wss://api.gendao.co/ws';
+// Use environment variable with fallback for local development
+const WS_URL = import.meta.env.VITE_WEBSOCKET_URL || (window.location.protocol === 'https:' 
+  ? `wss://${window.location.host}/ws` 
+  : `ws://${window.location.hostname}:8787/ws`);
 
 // Maximum number of reconnection attempts
 const MAX_RECONNECT_ATTEMPTS = 5;

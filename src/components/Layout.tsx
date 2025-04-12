@@ -42,7 +42,7 @@ export const Layout = ({ children }: LayoutProps) => {
           {isConnected ? (
             <>
               <Wifi className="h-3 w-3" />
-              <span>Connected to Cloudflare</span>
+              <span>Connected to Server</span>
             </>
           ) : (
             <>
