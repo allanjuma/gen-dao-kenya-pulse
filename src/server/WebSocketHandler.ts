@@ -1,5 +1,6 @@
 
-import { WebSocket, IncomingMessage } from 'ws';
+import { WebSocket } from 'ws';
+import { IncomingMessage } from 'http';
 import { WebSocketMessage, Proposal, User, Comment, Vote, Transaction } from '@/types';
 
 // In-memory storage for our application state
