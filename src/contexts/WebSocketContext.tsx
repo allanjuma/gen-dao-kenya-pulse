@@ -68,109 +68,22 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       
       setCurrentUser(mockUser);
       
-      // Mock initial proposals and users
-      const mockProposals: Proposal[] = [
-        {
-          id: 'proposal-1',
-          title: 'Community Garden Project',
-          description: 'Create a community garden in downtown Nairobi to promote sustainable agriculture and community bonding.',
-          creatorId: 'user-abc',
-          treasuryPhone: '+254712345678',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          updatedAt: null,
-          comments: [
-            {
-              id: 'comment-1',
-              userId: 'user-def',
-              content: 'This is a great initiative! I fully support it.',
-              createdAt: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
-              updatedAt: null,
-              sentiment: true
-            }
-          ],
-          votes: [
-            { userId: 'user-def', inFavor: true },
-            { userId: 'user-ghi', inFavor: true }
-          ],
-          transactions: []
-        },
-        {
-          id: 'proposal-2',
-          title: 'Digital Literacy Program',
-          description: 'Launch a series of free workshops to teach basic digital skills to youth in rural areas.',
-          creatorId: 'user-def',
-          treasuryPhone: '+254723456789',
-          status: 'active',
-          createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-          updatedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          comments: [
-            {
-              id: 'comment-2',
-              userId: 'user-abc',
-              content: 'I can help teach basic coding.',
-              createdAt: new Date(Date.now() - 129600000).toISOString(), // 1.5 days ago
-              updatedAt: null,
-              sentiment: true
-            },
-            {
-              id: 'comment-3',
-              userId: 'user-ghi',
-              content: 'We should focus on practical skills rather than theory.',
-              createdAt: new Date(Date.now() - 115200000).toISOString(), // 1.33 days ago
-              updatedAt: null,
-              sentiment: true
-            }
-          ],
-          votes: [
-            { userId: 'user-abc', inFavor: true },
-            { userId: 'user-def', inFavor: true },
-            { userId: 'user-ghi', inFavor: false }
-          ],
-          transactions: [
-            {
-              id: 'tx-1',
-              amount: 5000,
-              confirmations: 3,
-              label: 'Equipment Purchase',
-              createdAt: new Date(Date.now() - 43200000).toISOString() // 12 hours ago
-            }
-          ]
-        }
-      ];
-      
-      const mockUsers: User[] = [
-        {
-          id: 'user-abc',
-          joinedAt: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-          lastActive: new Date().toISOString(),
-          isFirstUser: true
-        },
-        {
-          id: 'user-def',
-          joinedAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-          lastActive: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          isFirstUser: false
-        },
-        {
-          id: 'user-ghi',
-          joinedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          lastActive: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-          isFirstUser: false
-        },
-        mockUser
-      ];
-      
-      // Sort users by join time
-      mockUsers.sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime());
+      // Start with empty proposals and users
+      // This simulates connecting to the server and getting initial empty state
+      setActiveUsers([mockUser]);
       
       // Update isFirstUser flag for the first user
-      if (mockUsers.length > 0) {
-        mockUsers[0].isFirstUser = true;
+      if (activeUsers.length === 1) {
+        setActiveUsers(users => {
+          if (users.length > 0) {
+            const updatedUsers = [...users];
+            updatedUsers[0].isFirstUser = true;
+            return updatedUsers;
+          }
+          return users;
+        });
       }
       
-      setProposals(mockProposals);
-      setActiveUsers(mockUsers);
       setIsConnected(true);
       setIsLoading(false);
       
@@ -178,6 +91,54 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         title: "Connected to genDAO",
         description: "You're now connected to the community",
       });
+      
+      // Simulate getting new users over time (in a real app, this would come from WebSocket events)
+      const userInterval = setInterval(() => {
+        if (Math.random() > 0.7) { // 30% chance to add a new user
+          const newUserId = `user-${generateId()}`;
+          const newUser: User = {
+            id: newUserId,
+            joinedAt: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            isFirstUser: false,
+          };
+          
+          setActiveUsers(prevUsers => {
+            const updatedUsers = [...prevUsers, newUser];
+            // Sort users by join time
+            updatedUsers.sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime());
+            // Update isFirstUser flag for the first user
+            if (updatedUsers.length > 0) {
+              updatedUsers.forEach(user => user.isFirstUser = false);
+              updatedUsers[0].isFirstUser = true;
+            }
+            return updatedUsers;
+          });
+          
+          // 10% chance to add a sample proposal with the new user
+          if (Math.random() > 0.9) {
+            const sampleProposal: Proposal = {
+              id: `proposal-${generateId()}`,
+              title: `Sample Proposal by ${newUserId.substring(0, 8)}`,
+              description: 'This is an automatically generated proposal to demonstrate real-time updates.',
+              creatorId: newUserId,
+              treasuryPhone: '+254712345678',
+              status: 'pending',
+              createdAt: new Date().toISOString(),
+              updatedAt: null,
+              comments: [],
+              votes: [],
+              transactions: []
+            };
+            
+            setProposals(prevProposals => [...prevProposals, sampleProposal]);
+          }
+        }
+      }, 10000); // Try to add a new user every 10 seconds
+      
+      return () => {
+        clearInterval(userInterval);
+      };
     }, 1500);
     
     return () => {
