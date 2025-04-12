@@ -1,4 +1,5 @@
 
+/// <reference path="./types.d.ts" />
 import { WebSocketServer } from './WebSocketServer';
 
 // Define interface for DurableObjectNamespace
