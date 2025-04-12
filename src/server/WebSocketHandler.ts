@@ -1,8 +1,9 @@
 
+import { WebSocket, IncomingMessage } from 'ws';
 import { WebSocketMessage, Proposal, User, Comment, Vote, Transaction } from '@/types';
 
 // In-memory storage for our application state
-class AppState {
+export class AppState {
   private proposals: Proposal[] = [];
   private users: User[] = [];
   private connections: Map<string, WebSocket> = new Map();
@@ -210,53 +211,39 @@ class AppState {
   }
 }
 
-// Cloudflare Durable Object class
-export class WebSocketServer {
+// WebSocket Handler class
+export class WebSocketHandler {
   private state: AppState;
 
-  constructor() {
-    this.state = new AppState();
+  constructor(state: AppState) {
+    this.state = state;
   }
 
   // Handle new WebSocket connection
-  handleConnection(request: Request): Response {
-    const upgradeHeader = request.headers.get('Upgrade');
-    
-    if (!upgradeHeader || upgradeHeader !== 'websocket') {
-      return new Response('Expected Upgrade: websocket', { status: 426 });
-    }
-    
-    const webSocketPair = new WebSocketPair();
-    const client = webSocketPair[0];
-    const server = webSocketPair[1];
-    
-    server.accept();
+  handleConnection(ws: WebSocket, req: IncomingMessage): void {
+    console.log('New WebSocket connection');
     
     // Set up event handlers for the WebSocket
-    server.addEventListener('message', event => {
+    ws.on('message', (message: string) => {
       try {
-        const message: WebSocketMessage = JSON.parse(event.data as string);
-        this.handleMessage(server, message);
+        const parsedMessage: WebSocketMessage = JSON.parse(message);
+        this.handleMessage(ws, parsedMessage);
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
-        server.send(JSON.stringify({
+        ws.send(JSON.stringify({
           type: 'ERROR',
           payload: { message: 'Invalid message format' }
         }));
       }
     });
     
-    server.addEventListener('close', () => {
-      this.handleClose(server);
+    ws.on('close', () => {
+      this.handleClose(ws);
     });
     
-    server.addEventListener('error', () => {
-      this.handleClose(server);
-    });
-    
-    return new Response(null, {
-      status: 101,
-      webSocket: client
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      this.handleClose(ws);
     });
   }
 
@@ -326,6 +313,7 @@ export class WebSocketServer {
       description: payload.description,
       creatorId: payload.creatorId,
       treasuryPhone: payload.treasuryPhone,
+      status: 'pending',
       updatedAt: null
     });
     
@@ -393,9 +381,4 @@ export class WebSocketServer {
   private handleClose(connection: WebSocket): void {
     this.state.removeUser(connection);
   }
-}
-
-// Helper function to create a new WebSocket server instance
-export function createWebSocketServer(): WebSocketServer {
-  return new WebSocketServer();
 }

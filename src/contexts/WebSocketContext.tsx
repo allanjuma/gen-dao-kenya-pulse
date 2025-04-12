@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { Proposal, User, WebSocketMessage } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -7,7 +6,7 @@ import { toast as sonnerToast } from 'sonner';
 // Use environment variable with fallback for local development
 const WS_URL = import.meta.env.VITE_WEBSOCKET_URL || (window.location.protocol === 'https:' 
   ? `wss://${window.location.host}/ws` 
-  : `ws://${window.location.hostname}:8787/ws`);
+  : `ws://${window.location.hostname}:8787`);
 
 // Maximum number of reconnection attempts
 const MAX_RECONNECT_ATTEMPTS = 5;
