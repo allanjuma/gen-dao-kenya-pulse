@@ -45,6 +45,6 @@ export interface Proposal {
 }
 
 export interface WebSocketMessage {
-  type: 'proposals' | 'users' | 'newProposal' | 'newComment' | 'newVote' | 'statusChange';
-  data: any;
+  type: string;
+  payload: any;
 }
