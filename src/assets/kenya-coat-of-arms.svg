@@ -1,0 +1,11 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Simplified Kenya Coat of Arms -->
+  <circle cx="100" cy="100" r="90" fill="#FFF" stroke="#000" stroke-width="2" />
+  <rect x="60" y="40" width="80" height="120" fill="#FF0000" rx="5" ry="5" />
+  <rect x="70" y="50" width="60" height="100" fill="#FFF" rx="3" ry="3" />
+  <rect x="80" y="60" width="40" height="80" fill="#006600" rx="2" ry="2" />
+  <polygon points="100,30 110,50 130,50 115,65 120,85 100,75 80,85 85,65 70,50 90,50" fill="#000" />
+  <rect x="95" y="140" width="10" height="30" fill="#000" />
+  <circle cx="100" cy="100" r="10" fill="#FF0000" />
+</svg>
