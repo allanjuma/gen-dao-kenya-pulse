@@ -1,3 +1,4 @@
+
 import { WebSocketMessage, Proposal, User, Comment, Vote, Transaction } from '@/types';
 
 // In-memory storage for our application state
@@ -93,7 +94,7 @@ class AppState {
       description: proposal.description,
       creatorId: proposal.creatorId,
       treasuryPhone: proposal.treasuryPhone,
-      status: proposal.status || 'pending',
+      status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: null,
       comments: [],
@@ -225,7 +226,7 @@ export class WebSocketServer {
       return new Response('Expected Upgrade: websocket', { status: 426 });
     }
     
-    const webSocketPair = new WebSocketPair() as unknown as { 0: WebSocket; 1: WebSocket };
+    const webSocketPair = new WebSocketPair();
     const client = webSocketPair[0];
     const server = webSocketPair[1];
     
@@ -256,7 +257,7 @@ export class WebSocketServer {
     return new Response(null, {
       status: 101,
       webSocket: client
-    } as ResponseInitWithWebSocket);
+    });
   }
 
   // Handle incoming WebSocket messages
@@ -325,7 +326,6 @@ export class WebSocketServer {
       description: payload.description,
       creatorId: payload.creatorId,
       treasuryPhone: payload.treasuryPhone,
-      status: 'pending',
       updatedAt: null
     });
     
