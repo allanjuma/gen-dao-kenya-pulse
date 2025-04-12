@@ -7,6 +7,7 @@ import { AppState, WebSocketHandler } from './WebSocketHandler';
 
 // Constants
 const PORT = process.env.PORT || 8787;
+const HOST = process.env.HOST || '0.0.0.0'; // Changed to bind to all interfaces
 
 // Initialize Express app
 const app = express();
@@ -67,7 +68,7 @@ app.get('*', (req, res) => {
 });
 
 // Start the server
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`WebSocket server available at ws://localhost:${PORT}/ws`);
+server.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log(`WebSocket server available at ws://${HOST}:${PORT}/ws`);
 });
