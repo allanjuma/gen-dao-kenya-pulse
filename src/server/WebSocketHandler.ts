@@ -2,6 +2,13 @@ import { WebSocket } from 'ws';
 import { IncomingMessage } from 'http';
 import { WebSocketMessage, Proposal, User, Comment, Vote, Transaction } from '@/types';
 
+
+interface ExtendedProposal extends Omit<Proposal, 'id' | 'createdAt' | 'comments' | 'votes' | 'transactions'> {
+  proposerFirstName: string;
+  proposerLastName: string;
+  expiryDate: string;
+  proposalAmount: number;
+}
 // In-memory storage for our application state
 export class AppState {
   private proposals: Proposal[] = [];
@@ -84,15 +91,20 @@ export class AppState {
   }
 
   // Proposal management
-  addProposal(proposal: Omit<Proposal, 'id' | 'createdAt' | 'comments' | 'votes' | 'transactions'> & { creatorId: string }): Proposal {
+  addProposal(proposal: ExtendedProposal & { creatorId: string }): Proposal {
+    const { proposerFirstName, proposerLastName, expiryDate, proposalAmount } = proposal;
     const newProposal: Proposal = {
       id: `proposal-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: proposal.title,
       description: proposal.description,
       creatorId: proposal.creatorId,
+      proposerFirstName,
+      proposerLastName,
+      expiryDate,
       treasuryPhone: proposal.treasuryPhone,
       status: 'pending',
       createdAt: new Date().toISOString(),
+      proposalAmount,
       updatedAt: null,
       comments: [],
       votes: [],
@@ -365,12 +377,16 @@ export class WebSocketHandler {
 
   // Handle new proposal creation
   private handleAddProposal(payload: any): void {
+    const { title, description, creatorId, treasuryPhone, proposerFirstName, proposerLastName, expiryDate, proposalAmount } = payload;
     const newProposal = this.state.addProposal({
-      title: payload.title,
-      description: payload.description,
-      creatorId: payload.creatorId,
-      treasuryPhone: payload.treasuryPhone,
+      title,
+      description,
+      creatorId,
+      treasuryPhone,
+      proposerFirstName,
+      proposerLastName,
       status: 'pending',
+      expiryDate,
       updatedAt: null
     });
     
