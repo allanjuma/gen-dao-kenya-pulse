@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { Proposal, User, WebSocketMessage } from '@/types';
+import { Proposal, User, WebSocketMessage, } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 
@@ -18,7 +18,7 @@ interface WebSocketContextType {
   isConnected: boolean;
   isLoading: boolean;
   connectionError: string | null;
-  addProposal: (proposal: Omit<Proposal, 'id' | 'creatorId' | 'createdAt' | 'comments' | 'votes' | 'transactions' | 'status'>) => void;
+  addProposal: (proposal: Omit<Proposal, 'id' | 'creatorId' | 'createdAt' | 'comments' | 'votes' | 'transactions' | 'status'> & { proposerFirstName: string; proposerLastName: string; expiryDate: string; proposalAmount: number; }) => void;
   addComment: (proposalId: string, content: string) => void;
   addVote: (proposalId: string, inFavor: boolean) => void;
   updateProposalStatus: (proposalId: string, status: 'pending' | 'active' | 'rejected') => void;
@@ -343,7 +343,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [currentUser, sendMessage]);
   
   // Functions to interact with the WebSocket API
-  const addProposal = useCallback((newProposal: Omit<Proposal, 'id' | 'creatorId' | 'createdAt' | 'comments' | 'votes' | 'transactions' | 'status'>) => {
+  const addProposal = useCallback((newProposal: Omit<Proposal, 'id' | 'creatorId' | 'createdAt' | 'comments' | 'votes' | 'transactions' | 'status'> & { proposerFirstName: string, proposerLastName: string, expiryDate: string, proposalAmount: number }) => {
     if (!currentUser) return;
     sendMessage('ADD_PROPOSAL', { ...newProposal, creatorId: currentUser.id });
   }, [currentUser, sendMessage]);
