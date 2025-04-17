@@ -75,10 +75,6 @@ export class AppState {
   }
 
   // Connection management
-  addConnection(userId: string, connection: WebSocket): void {
-    this.connections.set(userId, connection);
-  }
-
   removeConnection(userId: string): void {
     this.connections.delete(userId);
   }
@@ -345,7 +341,6 @@ export class WebSocketHandler {
     try {
       const newUser = this.state.addUser(userId, connection);
       console.log(`[WebSocketHandler] User registered/updated: ${userId}`, newUser);
-      this.state.addConnection(userId, connection);
       
       // Send ONLY the confirmation message for debugging
       // Use a simplified payload first
