@@ -188,6 +188,7 @@ export class AppState {
   // Broadcasting messages
   broadcastMessage(message: WebSocketMessage): void {
     const connections = this.getAllConnections();
+    console.log(connections);
     let messageString: string;
     // Log the raw message object before trying to stringify
     console.log(`[AppState] Attempting to broadcast message:`, message);
