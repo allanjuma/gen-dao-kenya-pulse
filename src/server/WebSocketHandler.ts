@@ -206,6 +206,11 @@ export class AppState {
         } catch (error) {
           console.error(`[AppState] Error sending broadcast message to one connection:`, error);
         }
+      }else{
+        console.warn(`[AppState] Connection not open when broadcasting message.`);
+        // Handle the case where the connection is not open
+        // 
+
       }
     });
   }

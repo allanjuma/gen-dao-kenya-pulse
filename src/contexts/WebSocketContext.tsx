@@ -161,6 +161,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     toast({
                         title: "New Proposal",
                         description: `A new proposal has been created: ${data.payload.title}`,
+                        duration: 5000
                     });
                     break;
 
@@ -205,13 +206,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     }));
                     break;
             }
-        } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
-            toast({
-                title: "Message Error",
-                description: "There was an error processing a message. Some data may not be up to date. Try refreshing.",
-                variant: "destructive"
-            });
+        } catch (error) {            
+            if (error instanceof SyntaxError) {
+                // Handle JSON parsing errors specifically
+                console.error('Error parsing WebSocket message:', error);
+                toast({
+                    title: "Message Error",
+                    description: "There was an error parsing a message from the server. Some data may not be up to date. Try refreshing.",
+                    variant: "destructive"
+                });
+              } else {
+                throw error;
+              }
         }
     };
     // Function to handle WebSocket errors
