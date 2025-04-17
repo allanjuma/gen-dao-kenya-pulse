@@ -1,4 +1,3 @@
-
 import { WebSocket } from 'ws';
 import { IncomingMessage } from 'http';
 import { WebSocketMessage, Proposal, User, Comment, Vote, Transaction } from '@/types';
@@ -193,11 +192,24 @@ export class AppState {
   // Broadcasting messages
   broadcastMessage(message: WebSocketMessage): void {
     const connections = this.getAllConnections();
-    const messageString = JSON.stringify(message);
+    let messageString: string;
+    // Log the raw message object before trying to stringify
+    console.log(`[AppState] Attempting to broadcast message:`, message);
+    try {
+      messageString = JSON.stringify(message);
+    } catch (error) {
+      console.error(`[AppState] Error stringifying broadcast message:`, error);
+      console.error(`[AppState] Message data that failed:`, message); // Log the data
+      return; // Don't attempt to send if stringify failed
+    }
     
     connections.forEach(connection => {
       if (connection.readyState === WebSocket.OPEN) {
-        connection.send(messageString);
+        try {
+          connection.send(messageString);
+        } catch (error) {
+          console.error(`[AppState] Error sending broadcast message to one connection:`, error);
+        }
       }
     });
   }
@@ -207,8 +219,29 @@ export class AppState {
     const connection = this.userIdToConnectionMap.get(userId);
     
     if (connection && connection.readyState === WebSocket.OPEN) {
-      connection.send(JSON.stringify(message));
+      let messageString: string;
+      // Log the raw message object before trying to stringify
+      console.log(`[AppState] Attempting to send message to user ${userId} (type: ${message.type}):`, message);
+      try {
+        messageString = JSON.stringify(message);
+      } catch (error) {
+        console.error(`[AppState] Error stringifying message for user ${userId}:`, error);
+        console.error(`[AppState] Message data that failed:`, message); // Log the data
+        return; // Don't attempt to send if stringify failed
+      }
+      try {
+        connection.send(messageString);
+      } catch (error) {
+        console.error(`[AppState] Error sending message to user ${userId}:`, error);
+      }
+    } else {
+       console.warn(`[AppState] Could not send message to user ${userId}: Connection not found or not open.`);
     }
+  }
+
+  // Get user ID associated with a WebSocket connection
+  getUserIdByConnection(connection: WebSocket): string | undefined {
+    return this.connectionToUserIdMap.get(connection);
   }
 }
 
@@ -222,15 +255,21 @@ export class WebSocketHandler {
 
   // Handle new WebSocket connection
   handleConnection(ws: WebSocket, req: IncomingMessage): void {
-    console.log('New WebSocket connection');
+    console.log(`[WebSocketHandler] New connection established. URL: ${req.url}`);
     
+    // Log client IP (if available through headers)
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log(`[WebSocketHandler] Client IP: ${clientIp}`);
+
     // Set up event handlers for the WebSocket
-    ws.on('message', (message: string) => {
+    ws.on('message', (message: Buffer) => {
+      console.log(`[WebSocketHandler] Received raw message: ${message.toString()}`);
       try {
-        const parsedMessage: WebSocketMessage = JSON.parse(message);
+        const parsedMessage: WebSocketMessage = JSON.parse(message.toString());
+        console.log(`[WebSocketHandler] Parsed message:`, parsedMessage);
         this.handleMessage(ws, parsedMessage);
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+        console.error('[WebSocketHandler] Error parsing WebSocket message:', error);
         ws.send(JSON.stringify({
           type: 'ERROR',
           payload: { message: 'Invalid message format' }
@@ -238,73 +277,86 @@ export class WebSocketHandler {
       }
     });
     
-    ws.on('close', () => {
+    ws.on('close', (code: number, reason: Buffer) => {
+      console.log(`[WebSocketHandler] Connection closed. Code: ${code}, Reason: ${reason.toString()}`);
       this.handleClose(ws);
     });
     
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+    ws.on('error', (error: Error) => {
+      console.error(`[WebSocketHandler] WebSocket error: ${error.message}`, error);
+      // Optionally close connection on error if not already handled by 'close'
       this.handleClose(ws);
     });
   }
 
   // Handle incoming WebSocket messages
   private handleMessage(connection: WebSocket, message: WebSocketMessage): void {
-    console.log('Received message:', message);
-    
-    switch (message.type) {
-      case 'REGISTER_USER':
-        this.handleRegisterUser(connection, message.payload.userId);
-        break;
-        
-      case 'ADD_PROPOSAL':
-        this.handleAddProposal(message.payload);
-        break;
-        
-      case 'ADD_COMMENT':
-        this.handleAddComment(message.payload);
-        break;
-        
-      case 'ADD_VOTE':
-        this.handleAddVote(message.payload);
-        break;
-        
-      case 'UPDATE_PROPOSAL_STATUS':
-        this.handleUpdateProposalStatus(message.payload);
-        break;
-        
-      case 'USER_DISCONNECT':
-        this.handleUserDisconnect(message.payload.userId);
-        break;
-        
-      default:
-        console.warn('Unknown message type:', message.type);
+    console.log(`[WebSocketHandler] Handling message type: ${message.type}`);
+    try {
+      switch (message.type) {
+        case 'REGISTER_USER':
+          console.log('[WebSocketHandler] Processing REGISTER_USER');
+          this.handleRegisterUser(connection, message.payload.userId);
+          break;
+        case 'ADD_PROPOSAL':
+          console.log('[WebSocketHandler] Processing ADD_PROPOSAL');
+          this.handleAddProposal(message.payload);
+          break;
+        case 'ADD_COMMENT':
+          console.log('[WebSocketHandler] Processing ADD_COMMENT');
+          this.handleAddComment(message.payload);
+          break;
+        case 'ADD_VOTE':
+          console.log('[WebSocketHandler] Processing ADD_VOTE');
+          this.handleAddVote(message.payload);
+          break;
+        case 'UPDATE_PROPOSAL_STATUS':
+          console.log('[WebSocketHandler] Processing UPDATE_PROPOSAL_STATUS');
+          this.handleUpdateProposalStatus(message.payload);
+          break;
+        case 'USER_DISCONNECT':
+          this.handleUserDisconnect(message.payload.userId);
+          break;
+        default:
+          console.warn(`[WebSocketHandler] Received unknown message type: ${message.type}`);
+          connection.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Unknown message type' } }));
+      }
+    } catch (error) {
+      console.error(`[WebSocketHandler] Error processing message type ${message.type}:`, error);
+      try {
         connection.send(JSON.stringify({
           type: 'ERROR',
-          payload: { message: 'Unknown message type' }
+          payload: { 
+            message: `Server error processing message type ${message.type}`,
+            errorDetails: error instanceof Error ? error.message : 'Unknown error' 
+          }
         }));
+      } catch (sendError) {
+        console.error(`[WebSocketHandler] Failed to send error message back to client:`, sendError);
+      }
     }
   }
 
   // Handle user registration
   private handleRegisterUser(connection: WebSocket, userId: string): void {
-    const user = this.state.addUser(userId, connection);
-    this.state.addConnection(userId, connection);
-    
-    // Send initial data to the user
-    connection.send(JSON.stringify({
-      type: 'INITIAL_DATA',
-      payload: {
-        proposals: this.state.getProposals(),
-        users: this.state.getUsers()
-      }
-    }));
-    
-    // Broadcast new user to all connections
-    this.state.broadcastMessage({
-      type: 'NEW_USER',
-      payload: user
-    });
+    console.log(`[WebSocketHandler] Attempting to register user: ${userId}`);
+    try {
+      const newUser = this.state.addUser(userId, connection);
+      console.log(`[WebSocketHandler] User registered/updated: ${userId}`, newUser);
+      this.state.addConnection(userId, connection);
+      
+      // Send ONLY the confirmation message for debugging
+      // Use a simplified payload first
+      this.state.sendMessageToUser(userId, { type: 'USER_REGISTERED', payload: { userId: newUser.id, status: 'ok' } }); 
+      
+      // Temporarily comment out other sends
+      // this.state.sendMessageToUser(userId, { type: 'INITIAL_STATE', payload: { proposals: this.state.getProposals() } });
+      // this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
+      
+      console.log(`[WebSocketHandler] Finished processing REGISTER_USER for: ${userId}`);
+    } catch (error) {
+      console.error(`[WebSocketHandler] Error in handleRegisterUser for ${userId}:`, error);
+    }
   }
 
   // Handle new proposal creation
@@ -380,6 +432,21 @@ export class WebSocketHandler {
 
   // Handle WebSocket close event
   private handleClose(connection: WebSocket): void {
-    this.state.removeUser(connection);
+    try { 
+      console.log(`[WebSocketHandler] Cleaning up connection...`); 
+      // Use the public getter method from AppState
+      const userId = this.state.getUserIdByConnection(connection);
+      if (userId) {
+        console.log(`[WebSocketHandler] Removing user ${userId} due to connection close.`);
+        this.state.removeUser(connection); 
+        console.log(`[WebSocketHandler] Broadcasting user list update after closing connection for ${userId}.`);
+        this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
+      } else {
+        console.log(`[WebSocketHandler] Connection closed for a user not found in map.`); 
+      }
+      console.log(`[WebSocketHandler] Finished cleaning up connection.`); 
+    } catch (error) {
+      console.error(`[WebSocketHandler] Error occurred during handleClose:`, error);
+    }
   }
 }

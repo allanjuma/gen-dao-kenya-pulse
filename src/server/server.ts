@@ -1,4 +1,3 @@
-
 import express from 'express';
 import http from 'http';
 import { WebSocketServer as WSServer } from 'ws';
@@ -19,6 +18,11 @@ const wss = new WSServer({ server });
 // Initialize application state
 const appState = new AppState();
 const webSocketHandler = new WebSocketHandler(appState);
+
+// Log WebSocket server errors
+wss.on('error', (error) => {
+  console.error(`WebSocket Server Error: ${error.message}`, error);
+});
 
 // Setup WebSocket connection handling
 wss.on('connection', (ws, req) => {
@@ -63,12 +67,13 @@ app.get('/', (req, res) => {
 });
 
 // Catch-all route to serve React app (if using SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../dist/index.html'));
-});
+// Temporarily commented out for debugging path-to-regexp error
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../../dist/index.html'));
+// });
 
 // Start the server
 server.listen(Number(PORT), HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
-  console.log(`WebSocket server available at ws://${HOST}:${PORT}/ws`);
+  console.log(`WebSocket server available at ws://${HOST}:${PORT}`); // Note: Path might implicitly be root '/' 
 });

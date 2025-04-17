@@ -1,11 +1,32 @@
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <!-- Simplified Kenya Coat of Arms -->
-  <circle cx="100" cy="100" r="90" fill="#FFF" stroke="#000" stroke-width="2" />
-  <rect x="60" y="40" width="80" height="120" fill="#FF0000" rx="5" ry="5" />
-  <rect x="70" y="50" width="60" height="100" fill="#FFF" rx="3" ry="3" />
-  <rect x="80" y="60" width="40" height="80" fill="#006600" rx="2" ry="2" />
-  <polygon points="100,30 110,50 130,50 115,65 120,85 100,75 80,85 85,65 70,50 90,50" fill="#000" />
-  <rect x="95" y="140" width="10" height="30" fill="#000" />
-  <circle cx="100" cy="100" r="10" fill="#FF0000" />
-</svg>
+<svg 
+      viewBox="0 0 100 100" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("h-6 w-6", className)}
+    >
+      {/* Simplified Kenyan Coat of Arms */}
+      <g transform="translate(0,5)">
+        {/* Shield */}
+        <path d="M50 10 L80 25 L80 75 L50 90 L20 75 L20 25 Z" fill="#BE0027" stroke="#000" strokeWidth="2"/>
+        
+        {/* Central black section */}
+        <path d="M50 20 L70 30 L70 70 L50 80 L30 70 L30 30 Z" fill="#000" stroke="#000" strokeWidth="1"/>
+        
+        {/* Spears */}
+        <line x1="15" y1="20" x2="25" y2="35" stroke="#6B3E00" strokeWidth="2"/>
+        <line x1="85" y1="20" x2="75" y2="35" stroke="#6B3E00" strokeWidth="2"/>
+        <path d="M15 20 L10 10 L20 15 Z" fill="#A6A6A6" stroke="#000" strokeWidth="1"/>
+        <path d="M85 20 L90 10 L80 15 Z" fill="#A6A6A6" stroke="#000" strokeWidth="1"/>
+        
+        {/* Crossed spears behind shield */}
+        <line x1="35" y1="5" x2="65" y2="95" stroke="#6B3E00" strokeWidth="2"/>
+        <line x1="65" y1="5" x2="35" y2="95" stroke="#6B3E00" strokeWidth="2"/>
+        
+        {/* Roosters */}
+        <circle cx="25" cy="50" r="5" fill="#BE0027"/>
+        <circle cx="75" cy="50" r="5" fill="#BE0027"/>
+        
+        {/* Green base representing Mount Kenya */}
+        <path d="M20 75 L50 90 L80 75 L75 80 L50 95 L25 80 Z" fill="#006600"/>
+      </g>
+    </svg>
