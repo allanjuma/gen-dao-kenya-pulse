@@ -2,6 +2,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+
 # Copy package files
 COPY package*.json ./
 COPY bun.lockb ./
@@ -21,6 +22,7 @@ COPY . .
 
 # Expose ports for Vite dev server and WebSocket server
 EXPOSE 5173 8787
+
 
 # Command to run the development servers with hot reload
 # Assumes 'npm run dev' is configured with concurrently/tsx

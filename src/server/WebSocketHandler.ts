@@ -451,7 +451,8 @@ export class WebSocketHandler {
       } else {
         console.log(`[WebSocketHandler] Connection closed for a user not found in map.`); 
       console.log(`[WebSocketHandler] Finished cleaning up connection.`); 
-    } catch (error) {
+    }
+  } catch (error) {
       console.error(`[WebSocketHandler] Error occurred during handleClose:`, error);
     }
   }
