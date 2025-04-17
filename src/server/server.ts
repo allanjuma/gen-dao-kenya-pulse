@@ -5,8 +5,8 @@ import path from 'path';
 import { AppState, WebSocketHandler } from './WebSocketHandler';
 
 // Constants
-const PORT = process.env.PORT || 8787;
-const HOST = process.env.HOST || '0.0.0.0'; // Changed to bind to all interfaces
+const PORT = 8787;
+const HOST = '0.0.0.0'; // Changed to bind to all interfaces
 
 // Initialize Express app
 const app = express();

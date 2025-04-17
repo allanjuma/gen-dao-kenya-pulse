@@ -202,7 +202,7 @@ export class AppState {
     connections.forEach(connection => {
       if (connection.readyState === WebSocket.OPEN) {
         try {
-          //connection.send(messageString);
+          connection.send(messageString);
         } catch (error) {
           console.error(`[AppState] Error sending broadcast message to one connection:`, error);
         }
@@ -213,7 +213,7 @@ export class AppState {
   // Send message to specific user
   sendMessageToUser(userId: string, message: WebSocketMessage): void {
     const connection = this.userIdToConnectionMap.get(userId);
-    console.log(connection);
+    
     if (connection && connection.readyState === WebSocket.OPEN) {
       let messageString: string;
       // Log the raw message object before trying to stringify
@@ -226,7 +226,7 @@ export class AppState {
         return; // Don't attempt to send if stringify failed
       }
       try {
-        //connection.send(messageString);
+        connection.send(messageString);
       } catch (error) {
         console.error(`[AppState] Error sending message to user ${userId}:`, error);
       }
