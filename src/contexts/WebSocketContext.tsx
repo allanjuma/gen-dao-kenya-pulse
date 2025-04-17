@@ -97,20 +97,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     sonnerToast.success("Retrying connection...");
   }, []);
 
-    const handleWebSocketOpen = (ws: WebSocket) => {
-        console.log('WebSocket connected');
-        setIsConnected(true);
-        setConnectionError(null);
-        reconnectAttempts.current = 0;
+  const handleWebSocketOpen = (ws: WebSocket) => {
+    console.log('WebSocket connected');
+    setIsConnected(true);
+    setConnectionError(null);
+    reconnectAttempts.current = 0;
 
-        // Register user with server
-        if (userIdRef.current) sendMessage('REGISTER_USER', { userId: userIdRef.current });
-        
-        // Show success toast only if previously disconnected
-        if (!isConnected) {
-            sonnerToast.success("Connected to server");
-        }
-    }, [isConnected, sendMessage]);
+    // Register user with server
+    if (userIdRef.current) sendMessage('REGISTER_USER', { userId: userIdRef.current });
+
+    // Show success toast only if previously disconnected
+    if (!isConnected) sonnerToast.success("Connected to server");
+  };
 
     // Function to handle WebSocket messages
     const handleWebSocketMessage = (event: MessageEvent) => {
@@ -202,7 +200,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             });
         }
     };
-
     // Function to handle WebSocket errors
     const handleWebSocketError = (error: Event) => {
       console.error('WebSocket error:', error);
@@ -220,9 +217,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 variant: "destructive"
             });
         }
-        reconnect();
     };
-
     // Function to handle WebSocket close event
     const handleWebSocketClose = () => {
         console.log('WebSocket closed');
@@ -234,7 +229,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
 
         reconnect();
-    };
 
     // Reconnection logic with exponential backoff
     const reconnect = useCallback(() => {
@@ -285,20 +279,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }, 10000); // 10 seconds connection timeout
         
           ws.onopen = () => {
-            clearTimeout(connectionTimeout);
-            handleWebSocketOpen(ws);
-        };
-        
-          ws.onmessage = handleWebSocketMessage;
-        
-          ws.onerror = handleWebSocketError;
-        
-          ws.onclose = handleWebSocketClose;
+          clearTimeout(connectionTimeout);
+          handleWebSocketOpen(ws);
+        };        
+        ws.onmessage = handleWebSocketMessage;
+        ws.onerror = handleWebSocketError;
+        ws.onclose = handleWebSocketClose;
       } catch (error) {
-          console.error('Error creating WebSocket connection:', error);
+        console.error('Error creating WebSocket connection:', error);
         setConnectionError("Failed to create connection. Please try again later.");
         setIsLoading(false);
       }
+        
     };
     
     connectWebSocket();
@@ -313,7 +305,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [sendMessage]);
+  }, []);
   
   // For cleanup and automatic reconnection
   useEffect(() => {
