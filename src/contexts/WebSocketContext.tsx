@@ -122,7 +122,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     break;
 
                 case 'INITIAL_DATA':
-                    setProposals(data.payload.proposals || []);
+                    setProposals(prevProposals => {
+                        const incomingProposals = data.payload.proposals || [];
+                        // Merge the incoming proposals with the existing ones,
+                        // ensuring no duplicates based on proposal ID
+                        const mergedProposals = [
+                            ...incomingProposals,
+                            ...prevProposals.filter(
+                                (prevProposal) =>
+                                    !incomingProposals.some(
+                                        (incomingProposal) => incomingProposal.id === prevProposal.id
+                                    )
+                            ),
+                        ];
+                        return mergedProposals;
+                    });
                     setActiveUsers(data.payload.users || []);
 
                     // Find current user in the active users list
