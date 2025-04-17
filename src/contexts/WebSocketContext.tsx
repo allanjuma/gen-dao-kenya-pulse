@@ -57,6 +57,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { toast } = useToast();
   const reconnectAttempts = useRef(0);
   const reconnectTimeoutRef = useRef<number | null>(null);
+  const userIdRef = useRef<string | null>(null);
   
   // Send message to WebSocket server
   const sendMessage = useCallback((type: string, payload: any) => {
@@ -96,16 +97,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     sonnerToast.success("Retrying connection...");
   }, []);
 
-    // Function to handle WebSocket open event
-    const handleWebSocketOpen = useCallback((ws: WebSocket) => {
+    const handleWebSocketOpen = (ws: WebSocket) => {
         console.log('WebSocket connected');
         setIsConnected(true);
         setConnectionError(null);
         reconnectAttempts.current = 0;
 
         // Register user with server
-        sendMessage('REGISTER_USER', { userId: getUserId() });
-
+        if (userIdRef.current) sendMessage('REGISTER_USER', { userId: userIdRef.current });
+        
         // Show success toast only if previously disconnected
         if (!isConnected) {
             sonnerToast.success("Connected to server");
@@ -113,8 +113,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [isConnected, sendMessage]);
 
     // Function to handle WebSocket messages
-    const handleWebSocketMessage = useCallback((event: MessageEvent) => {
-        try {
+    const handleWebSocketMessage = (event: MessageEvent) => {
+      try {
             const data: WebSocketMessage = JSON.parse(event.data);
             console.log('Received message:', data);
 
@@ -128,7 +128,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     setActiveUsers(data.payload.users || []);
 
                     // Find current user in the active users list
-                    const foundUser = data.payload.users.find((user: User) => user.id === getUserId());
+                    const foundUser = data.payload.users.find((user: User) => user.id === userIdRef.current);
                     if (foundUser) {
                         setCurrentUser(foundUser);
                     }
@@ -195,12 +195,22 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             }
         } catch (error) {
             console.error('Error parsing WebSocket message:', error);
+            toast({
+                title: "Message Error",
+                description: "There was an error processing a message. Some data may not be up to date. Try refreshing.",
+                variant: "destructive"
+            });
         }
-    }, []);
+    };
 
     // Function to handle WebSocket errors
-    const handleWebSocketError = useCallback((error: Event) => {
-        console.error('WebSocket error:', error);
+    const handleWebSocketError = (error: Event) => {
+      console.error('WebSocket error:', error);
+        if (error instanceof ErrorEvent && error.message) {
+            setConnectionError(`WebSocket Error: ${error.message}`);
+        } else {
+            setConnectionError("Failed to connect to server. Please try again later.");
+        }
         setConnectionError("Failed to connect to server. Please try again later.");
 
         if (reconnectAttempts.current === 0) {
@@ -210,10 +220,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 variant: "destructive"
             });
         }
-    }, []);
+        reconnect();
+    };
 
     // Function to handle WebSocket close event
-    const handleWebSocketClose = useCallback(() => {
+    const handleWebSocketClose = () => {
         console.log('WebSocket closed');
         setIsConnected(false);
 
@@ -223,7 +234,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
 
         reconnect();
-    }, [isConnected]);
+    };
 
     // Reconnection logic with exponential backoff
     const reconnect = useCallback(() => {
@@ -254,9 +265,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Connect to WebSocket server
   useEffect(() => {
     setIsLoading(true);
-    const userId = getUserId();
-    
+    userIdRef.current = getUserId();
     const connectWebSocket = () => {
+    
       try {
         console.log(`Connecting to WebSocket at ${WS_URL}, attempt #${reconnectAttempts.current + 1}`);
         setConnectionError(null);
@@ -284,7 +295,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
           ws.onclose = handleWebSocketClose;
       } catch (error) {
-        console.error('Error creating WebSocket connection:', error);
+          console.error('Error creating WebSocket connection:', error);
         setConnectionError("Failed to create connection. Please try again later.");
         setIsLoading(false);
       }
@@ -302,7 +313,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [handleWebSocketClose, handleWebSocketError, handleWebSocketMessage, handleWebSocketOpen, sendMessage]);
+  }, [sendMessage]);
   
   // For cleanup and automatic reconnection
   useEffect(() => {
