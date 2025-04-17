@@ -206,7 +206,7 @@ export class AppState {
     connections.forEach(connection => {
       if (connection.readyState === WebSocket.OPEN) {
         try {
-          connection.send(messageString);
+          //connection.send(messageString);
         } catch (error) {
           console.error(`[AppState] Error sending broadcast message to one connection:`, error);
         }
@@ -217,7 +217,7 @@ export class AppState {
   // Send message to specific user
   sendMessageToUser(userId: string, message: WebSocketMessage): void {
     const connection = this.userIdToConnectionMap.get(userId);
-    
+    console.log(connection);
     if (connection && connection.readyState === WebSocket.OPEN) {
       let messageString: string;
       // Log the raw message object before trying to stringify
@@ -230,7 +230,7 @@ export class AppState {
         return; // Don't attempt to send if stringify failed
       }
       try {
-        connection.send(messageString);
+        //connection.send(messageString);
       } catch (error) {
         console.error(`[AppState] Error sending message to user ${userId}:`, error);
       }
@@ -319,11 +319,12 @@ export class WebSocketHandler {
           break;
         default:
           console.warn(`[WebSocketHandler] Received unknown message type: ${message.type}`);
-          connection.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Unknown message type' } }));
+          //connection.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Unknown message type' } }));
       }
     } catch (error) {
       console.error(`[WebSocketHandler] Error processing message type ${message.type}:`, error);
       try {
+        /*
         connection.send(JSON.stringify({
           type: 'ERROR',
           payload: { 
@@ -331,6 +332,7 @@ export class WebSocketHandler {
             errorDetails: error instanceof Error ? error.message : 'Unknown error' 
           }
         }));
+        */
       } catch (sendError) {
         console.error(`[WebSocketHandler] Failed to send error message back to client:`, sendError);
       }
@@ -350,8 +352,8 @@ export class WebSocketHandler {
       this.state.sendMessageToUser(userId, { type: 'USER_REGISTERED', payload: { userId: newUser.id, status: 'ok' } }); 
       
       // Temporarily comment out other sends
-      this.state.sendMessageToUser(userId, { type: 'INITIAL_STATE', payload: { proposals: this.state.getProposals() } });
-      this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
+      //this.state.sendMessageToUser(userId, { type: 'INITIAL_STATE', payload: { proposals: this.state.getProposals() } });
+      //this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
       
       console.log(`[WebSocketHandler] Finished processing REGISTER_USER for: ${userId}`);
     } catch (error) {
@@ -436,6 +438,11 @@ export class WebSocketHandler {
       console.log(`[WebSocketHandler] Cleaning up connection...`); 
       // Use the public getter method from AppState
       const userId = this.state.getUserIdByConnection(connection);
+      if (!userId) {
+        console.log(`[WebSocketHandler] Connection closed for a user not found in map.`);
+        console.log(`[WebSocketHandler] Finished cleaning up connection.`); 
+        return;
+      }
       if (userId) {
         console.log(`[WebSocketHandler] Removing user ${userId} due to connection close.`);
         this.state.removeUser(connection); 
@@ -443,7 +450,6 @@ export class WebSocketHandler {
         this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
       } else {
         console.log(`[WebSocketHandler] Connection closed for a user not found in map.`); 
-      }
       console.log(`[WebSocketHandler] Finished cleaning up connection.`); 
     } catch (error) {
       console.error(`[WebSocketHandler] Error occurred during handleClose:`, error);

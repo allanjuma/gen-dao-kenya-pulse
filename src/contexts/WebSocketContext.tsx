@@ -145,7 +145,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 console.log('Received USER_REGISTERED: ', data.payload);
                 break;
 
-              case 'INITIAL_DATA':
+              case 'INITIAL_DATA':console
                 setProposals(data.payload.proposals || []);
                 setActiveUsers(data.payload.users || []);
                 
