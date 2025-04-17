@@ -229,7 +229,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
 
         reconnect();
-
+    };
     // Reconnection logic with exponential backoff
     const reconnect = useCallback(() => {
         if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
