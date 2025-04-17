@@ -60,8 +60,7 @@ export const CreateProposalForm = () => {
         title: values.title,
         description: values.description,
         treasuryPhone: values.treasuryPhone,
-        updatedAt: null // Adding the missing updatedAt property
-      });
+        updatedAt: null,
         proposerFirstName: values.proposerFirstName,
         proposerLastName: values.proposerLastName,
         expiryDate: values.expiryDate.toISOString(), // Convert to ISO string for transmission
