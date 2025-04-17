@@ -125,6 +125,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setConnectionError(null);
           reconnectAttempts.current = 0;
           
+          
           // Register user with server
           sendMessage('REGISTER_USER', { userId });
           
