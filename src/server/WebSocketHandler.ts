@@ -343,12 +343,10 @@ export class WebSocketHandler {
       console.log(`[WebSocketHandler] User registered/updated: ${userId}`, newUser);
       
       // Send ONLY the confirmation message for debugging
-      // Use a simplified payload first
       this.state.sendMessageToUser(userId, { type: 'USER_REGISTERED', payload: { userId: newUser.id, status: 'ok' } }); 
       
-      // Temporarily comment out other sends
-      //this.state.sendMessageToUser(userId, { type: 'INITIAL_STATE', payload: { proposals: this.state.getProposals() } });
-      //this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
+      //send initial state
+      this.state.sendMessageToUser(userId, { type: 'INITIAL_DATA', payload: { proposals: this.state.getProposals(), users: this.state.getUsers() } });
       
       console.log(`[WebSocketHandler] Finished processing REGISTER_USER for: ${userId}`);
     } catch (error) {
