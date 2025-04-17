@@ -348,6 +348,9 @@ export class WebSocketHandler {
       const newUser = this.state.addUser(userId, connection);
       console.log(`[WebSocketHandler] User registered/updated: ${userId}`, newUser);
       
+      // Add the new connection to the connections map
+      this.state.connections.set(userId, connection);
+
       // Send ONLY the confirmation message for debugging
       this.state.sendMessageToUser(userId, { type: 'USER_REGISTERED', payload: { userId: newUser.id, status: 'ok' } }); 
       
