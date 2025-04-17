@@ -97,7 +97,7 @@ export class AppState {
       throw new Error('Proposer names are required.');
     }
 
-    const expiryDate = new Date(proposal.expiryDate);
+    const expiryDate =  new Date(proposal.expiryDate);
     const minExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
     const maxExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
@@ -112,11 +112,11 @@ export class AppState {
       id: `proposal-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: proposal.title,
       description: proposal.description,
-      creatorId: proposal.creatorId,
-      proposerFirstName,
-      proposerLastName,
-      expiryDate,
-      proposalAmount,
+      creatorId: proposal.creatorId,      
+      proposerFirstName:proposal.proposerFirstName,
+      proposerLastName: proposal.proposerLastName,
+      expiryDate: proposal.expiryDate,
+      proposalAmount: proposal.proposalAmount,
       treasuryPhone: proposal.treasuryPhone,
       status: 'pending',
       createdAt: new Date().toISOString(),
