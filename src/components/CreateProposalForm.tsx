@@ -19,7 +19,7 @@ import { useWebSocket } from '@/contexts/WebSocketContext'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { CalendarIcon } from "radix-ui/react-icons"
+import { CalendarIcon } from "@radix-ui/react-icons"
 import { format } from "date-fns"
 import { DateRange } from "react-day-picker"
 
