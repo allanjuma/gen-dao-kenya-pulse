@@ -3,7 +3,7 @@ import { IncomingMessage } from 'http';
 import { WebSocketMessage, Proposal, User, Comment, Vote, Transaction } from '@/types';
 
 
-interface ExtendedProposal extends Omit<Proposal, 'id' | 'createdAt' | 'comments' | 'votes' | 'transactions'> {
+interface ExtendedProposal extends Omit<Proposal, 'id' | 'createdAt' | 'comments' | 'votes' | 'transactions' | 'status' | 'updatedAt'> {
   proposerFirstName: string;
   proposerLastName: string;
   expiryDate: string;
@@ -91,8 +91,23 @@ export class AppState {
   }
 
   // Proposal management
-  addProposal(proposal: ExtendedProposal & { creatorId: string }): Proposal {
-    const { proposerFirstName, proposerLastName, expiryDate, proposalAmount } = proposal;
+  addProposal(proposal: Omit<Proposal, 'id' | 'createdAt' | 'comments' | 'votes' | 'transactions' | 'status' | 'updatedAt'> & { creatorId: string, proposerFirstName: string, proposerLastName: string, expiryDate: string, proposalAmount: number }): Proposal {
+    // Validation
+    if (!proposal.proposerFirstName || !proposal.proposerLastName) {
+      throw new Error('Proposer names are required.');
+    }
+
+    const expiryDate = new Date(proposal.expiryDate);
+    const minExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+    const maxExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    if (expiryDate < minExpiry || expiryDate > maxExpiry) {
+      throw new Error('Expiry date must be between 2 and 30 days from now.');
+    }
+
+    if (!Number.isInteger(proposal.proposalAmount) || proposal.proposalAmount <= 10 || proposal.proposalAmount >= 100000) {
+      throw new Error('Proposal amount must be an integer between 10 and 100,000.');
+    }
     const newProposal: Proposal = {
       id: `proposal-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: proposal.title,
@@ -101,10 +116,10 @@ export class AppState {
       proposerFirstName,
       proposerLastName,
       expiryDate,
+      proposalAmount,
       treasuryPhone: proposal.treasuryPhone,
       status: 'pending',
       createdAt: new Date().toISOString(),
-      proposalAmount,
       updatedAt: null,
       comments: [],
       votes: [],
@@ -378,22 +393,32 @@ export class WebSocketHandler {
   // Handle new proposal creation
   private handleAddProposal(payload: any): void {
     const { title, description, creatorId, treasuryPhone, proposerFirstName, proposerLastName, expiryDate, proposalAmount } = payload;
-    const newProposal = this.state.addProposal({
-      title,
-      description,
-      creatorId,
-      treasuryPhone,
-      proposerFirstName,
-      proposerLastName,
-      status: 'pending',
-      expiryDate,
-      updatedAt: null
-    });
-    
-    this.state.broadcastMessage({
-      type: 'NEW_PROPOSAL',
-      payload: newProposal
-    });
+    try {
+      const newProposal = this.state.addProposal({
+        title,
+        description,
+        creatorId,
+        treasuryPhone,
+        proposerFirstName,
+        proposerLastName,
+        expiryDate,
+        proposalAmount,
+        status: 'pending',
+        updatedAt: null
+      });
+
+      this.state.broadcastMessage({
+        type: 'NEW_PROPOSAL',
+        payload: newProposal
+      });
+    } catch (error: any) {
+      console.error(`[WebSocketHandler] Error adding proposal:`, error);
+      // Send an error message back to the client
+      this.state.sendMessageToUser(creatorId, {
+        type: 'ERROR',
+        payload: { message: 'Invalid proposal data', details: error.message },
+      });
+    }
   }
 
   // Handle new comment addition
