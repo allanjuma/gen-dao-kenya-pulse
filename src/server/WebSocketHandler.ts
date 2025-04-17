@@ -350,8 +350,8 @@ export class WebSocketHandler {
       this.state.sendMessageToUser(userId, { type: 'USER_REGISTERED', payload: { userId: newUser.id, status: 'ok' } }); 
       
       // Temporarily comment out other sends
-      // this.state.sendMessageToUser(userId, { type: 'INITIAL_STATE', payload: { proposals: this.state.getProposals() } });
-      // this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
+      this.state.sendMessageToUser(userId, { type: 'INITIAL_STATE', payload: { proposals: this.state.getProposals() } });
+      this.state.broadcastMessage({ type: 'UPDATE_USERS', payload: this.state.getUsers() });
       
       console.log(`[WebSocketHandler] Finished processing REGISTER_USER for: ${userId}`);
     } catch (error) {
